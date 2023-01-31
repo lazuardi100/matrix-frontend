@@ -1,10 +1,28 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from '@next/font/google'
+import { axiosInstance } from '../helpers/axiosHelper';
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Login() {
+  const LoggingIn = () => {
+    // @ts-ignore: Object is possibly 'null'
+    const email = document.getElementById('email').value
+    // @ts-ignore: Object is possibly 'null'
+    const password = document.getElementById('password').value
+
+    console.log(email);
+
+    if (email != '' && password != ''){
+      axiosInstance.post('/auth/login',{
+        "username": email,
+        "password": password
+      }).then(response=>{
+        console.log(response);
+      })
+    }
+  }
   return (
     <>
       <Head>
@@ -27,7 +45,7 @@ export default function Login() {
           <div className='mb-6'>
             <a className="underline decoration-sky-500" href="/sign_up">register now</a>
           </div>
-          <button type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Log in</button>
+          <button onClick={()=>LoggingIn()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Log in</button>
         </div>
       </main>
     </>
