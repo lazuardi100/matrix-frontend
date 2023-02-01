@@ -1,15 +1,55 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from '@next/font/google'
-import { delJwtCookie } from '../helpers/jwtCookieHelper';
+import { delJwtCookie, getJwtCookie } from '../helpers/jwtCookieHelper';
+import { axiosInstance } from '../helpers/axiosHelper';
+import { useState } from 'react';
 
 const inter = Inter({ subsets: ['latin'] })
 
 // @ts-ignore
 export default function Submission({loginWrapperSetter}) {
+  const [resultMsg, setResultMsg] = useState('');
+
   const logOut = () => {
     delJwtCookie()
     loginWrapperSetter(false)
+  }
+  
+  const solveProblem = () => {
+    // @ts-ignore
+    const matrix = document.getElementById('matrix').value
+    // @ts-ignore
+    const target = document.getElementById('target').value
+
+    const data = {
+      "matrix": matrix,
+      find_number: parseInt(target)
+    }
+    axiosInstance.post('/solve_problem',data,{
+      headers:{
+        Authorization: 'Bearer '+ getJwtCookie()
+      }
+    }).then(response=>{
+      const data = response.data;
+      console.log(data);
+      const msg = data.msg;
+      if (data.status == 200){
+        setResultMsg(`(${msg[0]}, ${msg[1]})`)
+      } else if(data.status == 201){
+        setResultMsg('false')
+      }else{
+        setResultMsg(msg)
+      }
+    }).catch(resp=>{
+      const data = resp.response.data
+      if (data.statusCode === 401){
+        delJwtCookie()
+        loginWrapperSetter(false)
+      }else{
+        console.log(data);
+      }
+    })
   }
   return (
     <>
@@ -27,13 +67,17 @@ export default function Submission({loginWrapperSetter}) {
         <div className="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mx-auto">
           <div className="mb-6">
             <label htmlFor="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Input your matrix array</label>
-            <textarea id="message" rows={4} className="base_input" placeholder="Write here..."></textarea>
+            <textarea id="matrix" rows={4} className="base_input" placeholder="Write here..."></textarea>
           </div>
           <div className="mb-6">
             <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Number to look for</label>
-            <input type="number" id="choosen_number" className="base_input" required/>
+            <input type="number" id="target" className="base_input" required/>
           </div>
-          <button type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Find number</button>
+          <button onClick={()=>solveProblem()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Find number</button>
+        </div>
+        <div className="max-w-sm mx-auto mt-5 mb-5">
+        <p className='text-2xl text-center mt-10 mb-5'>Result</p>
+          <h1 className='text-center'>{resultMsg}</h1>
         </div>
       </main>
     </>
