@@ -2,7 +2,7 @@ import { axiosInstance } from "@/helpers/axiosHelper";
 import { getJwtCookie } from "@/helpers/jwtCookieHelper";
 import Login from "@/page_components/login";
 import Submission from "@/page_components/submission";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function Home() {
 
@@ -22,7 +22,11 @@ export default function Home() {
       return
     }
     
-    axiosInstance.get('/auth/check_login')
+    axiosInstance.get('/auth/check_login',{
+      headers: {
+        Authorization: 'Bearer '+currentToken
+      }
+    })
       .then(response => {
         if (response.status == 200){
           setIsLoggedIn(true)
@@ -33,9 +37,15 @@ export default function Home() {
           setIsLoading(false)
           return
         }
+      }).catch(response=>{
+        setIsLoggedIn(false)
+        setIsLoading(false)
       })
   }
 
+  const loginWrapper = useCallback((val: boolean=false)=>{
+    setIsLoggedIn(val)
+  }, [setIsLoading])
   if (isLoading){
     return (
       <div role="status">
@@ -49,8 +59,14 @@ export default function Home() {
   }
 
   if(isLoggedIn){
-    return <Submission/>
+    return <Submission
+      // @ts-ignore
+      loginWrapperSetter={loginWrapper}
+    />
   }else{
-    return <Login/>
+    return <Login
+    // @ts-ignore
+      loginWrapperSetter={loginWrapper}
+    />
   }
 }

@@ -1,10 +1,16 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from '@next/font/google'
+import { delJwtCookie } from '../helpers/jwtCookieHelper';
 
 const inter = Inter({ subsets: ['latin'] })
 
-export default function Submission() {
+// @ts-ignore
+export default function Submission({loginWrapperSetter}) {
+  const logOut = () => {
+    delJwtCookie()
+    loginWrapperSetter(false)
+  }
   return (
     <>
       <Head>
@@ -14,6 +20,9 @@ export default function Submission() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className='container'>
+        <div className="relative">
+          <button onClick={()=>logOut()} type="submit" className="text-black absolute right-0 rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Logout</button>
+        </div>
         <p className='text-2xl text-center mt-10 mb-5'>Submission</p>
         <div className="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mx-auto">
           <div className="mb-6">
