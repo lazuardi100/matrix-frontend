@@ -1,9 +1,9 @@
 import Head from 'next/head'
-import Image from 'next/image'
 import { Inter } from '@next/font/google'
 import { axiosInstance } from '../helpers/axiosHelper';
 import { setJwtCookie } from '../helpers/jwtCookieHelper';
 import { useState } from 'react';
+import Web3 from 'web3';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -11,6 +11,7 @@ const inter = Inter({ subsets: ['latin'] })
 export default function Login({loginWrapperSetter}) {
   const [isError, setIsError] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
   const LoggingIn = () => {
     // @ts-ignore: Object is possibly 'null'
     const email = document.getElementById('email').value
@@ -39,6 +40,49 @@ export default function Login({loginWrapperSetter}) {
     }else{
       setIsError(true)
       setErrorMsg('email & password must filled!')
+    }
+  }
+
+  const detectCurrentProvider = () => {
+    let provider;
+    // @ts-ignore
+    if (window.ethereum) {
+      // @ts-ignore
+      provider = window.ethereum;
+      // @ts-ignore
+    } else if (window.web3) {
+      // @ts-ignore
+      provider = window.web3.currentProvider;
+    } else {
+      alert('Non-ethereum browser detected. You should install web3 wallet');
+    }
+    return provider;
+  };
+
+  const onConnect = async() => {
+    try {
+      const currentProvider = detectCurrentProvider();
+      if(currentProvider) {
+        await currentProvider.request({method: 'eth_requestAccounts'});
+        const web3 = new Web3(currentProvider);
+        const userAccount  =await web3.eth.getAccounts();
+        const account = userAccount[0];
+
+        axiosInstance.post('/auth/login_web3',{
+          "wallet_address": account
+        }).then(response=>{
+          if (response.status == 201){
+            setJwtCookie(response.data.access_token)
+            loginWrapperSetter(true)
+          }
+        }).catch(response=>{
+          const data = response.response.data
+          setIsError(true)
+          setErrorMsg(data.message)
+        })
+      }
+    } catch(err) {
+      console.log(err);
     }
   }
 
@@ -78,7 +122,12 @@ export default function Login({loginWrapperSetter}) {
               </button>
             </div>
           }
-          <button onClick={()=>LoggingIn()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Log in</button>
+          <div className="mb-3">
+            <button onClick={()=>LoggingIn()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Log in</button>
+          </div>
+          <div>
+            <button onClick={()=>onConnect()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Web3 Log in</button>
+          </div>
         </div>
       </main>
     </>
