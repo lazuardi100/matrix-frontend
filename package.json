@@ -6,15 +6,20 @@
     "dev": "next dev -p 4001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest --watch",
+    "test:ci": "jest --ci",
+    "test:cov": "jest --coverage"
   },
   "dependencies": {
     "@next/font": "13.1.6",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "14.2.0",
     "@types/node": "18.11.18",
     "@types/react": "18.0.27",
     "@types/react-dom": "18.0.10",
+    "@types/testing-library__jest-dom": "5.14.5",
     "axios": "^1.2.6",
     "flowbite": "^1.6.3",
     "flowbite-react": "^0.3.8",
@@ -24,10 +29,13 @@
     "next": "13.1.6",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "ts-jest": "^29.0.5",
+    "ts-node": "^10.9.1",
     "typescript": "4.9.4",
     "web3": "^1.8.2"
   },
   "devDependencies": {
+    "@babel/plugin-transform-react-jsx": "^7.20.13",
     "autoprefixer": "^10.4.13",
     "postcss": "^8.4.21",
     "tailwindcss": "^3.2.4"
