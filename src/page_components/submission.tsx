@@ -4,19 +4,22 @@ import { Inter } from '@next/font/google'
 import { delJwtCookie, getJwtCookie } from '../helpers/jwtCookieHelper';
 import { axiosInstance } from '../helpers/axiosHelper';
 import { useState } from 'react';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 const inter = Inter({ subsets: ['latin'] })
 
 // @ts-ignore
 export default function Submission({loginWrapperSetter}) {
   const [resultMsg, setResultMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const logOut = () => {
     delJwtCookie()
     loginWrapperSetter(false)
   }
   
-  const solveProblem = () => {
+  const solveProblem = async () => {
+    setIsLoading(true)
     // @ts-ignore
     const matrix = document.getElementById('matrix').value
     // @ts-ignore
@@ -26,7 +29,7 @@ export default function Submission({loginWrapperSetter}) {
       "matrix": matrix,
       find_number: parseInt(target)
     }
-    axiosInstance.post('/solve_problem',data,{
+    await axiosInstance.post('/solve_problem',data,{
       headers:{
         Authorization: 'Bearer '+ getJwtCookie()
       }
@@ -50,6 +53,7 @@ export default function Submission({loginWrapperSetter}) {
         console.log(data);
       }
     })
+    setIsLoading(false)
   }
   return (
     <>
@@ -73,7 +77,12 @@ export default function Submission({loginWrapperSetter}) {
             <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Number to look for</label>
             <input type="number" id="target" className="base_input" required/>
           </div>
-          <button onClick={()=>solveProblem()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Find number</button>
+          <button onClick={()=>solveProblem()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+            {isLoading?
+              <LoadingSpinner/>:
+              <>Find number</>
+            }
+          </button>
         </div>
         <div className="max-w-sm mx-auto mt-5 mb-5">
         <p className='text-2xl text-center mt-10 mb-5'>Result</p>

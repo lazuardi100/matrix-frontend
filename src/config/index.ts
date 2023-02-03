@@ -1,1 +1,1 @@
-export const backend_url = "http://localhost:4000"
+export const backend_url = "https://backend-matrix123.herokuapp.com/"

@@ -4,6 +4,7 @@ import { axiosInstance } from '../helpers/axiosHelper';
 import { setJwtCookie } from '../helpers/jwtCookieHelper';
 import { useState } from 'react';
 import Web3 from 'web3';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -11,15 +12,17 @@ const inter = Inter({ subsets: ['latin'] })
 export default function Login({loginWrapperSetter}) {
   const [isError, setIsError] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const LoggingIn = () => {
+  const LoggingIn = async () => {
+    setIsLoading(true)
     // @ts-ignore: Object is possibly 'null'
     const email = document.getElementById('email').value
     // @ts-ignore: Object is possibly 'null'
     const password = document.getElementById('password').value
 
     if (email != '' && password != ''){
-      axiosInstance.post('/auth/login',{
+      await axiosInstance.post('/auth/login',{
         "username": email,
         "password": password
       }).then(response=>{
@@ -28,19 +31,25 @@ export default function Login({loginWrapperSetter}) {
           loginWrapperSetter(true)
         }
       }).catch(response=>{
-        const data = response.response.data
-        if (data.statusCode === 401){
+        try {
+          const data = response.response.data
+          if (data.statusCode === 401){
+            setIsError(true)
+            setErrorMsg("email or password is invalid")
+          }else{
+            setIsError(true)
+            setErrorMsg(data.message)
+          }
+        } catch (error) {
           setIsError(true)
-          setErrorMsg("email or password is invalid")
-        }else{
-          setIsError(true)
-          setErrorMsg(data.message)
+          setErrorMsg(response.message)
         }
       })
     }else{
       setIsError(true)
       setErrorMsg('email & password must filled!')
     }
+    setIsLoading(false)
   }
 
   const detectCurrentProvider = () => {
@@ -60,6 +69,7 @@ export default function Login({loginWrapperSetter}) {
   };
 
   const onConnect = async() => {
+    setIsLoading(true)
     try {
       const currentProvider = detectCurrentProvider();
       if(currentProvider) {
@@ -68,7 +78,7 @@ export default function Login({loginWrapperSetter}) {
         const userAccount  =await web3.eth.getAccounts();
         const account = userAccount[0];
 
-        axiosInstance.post('/auth/login_web3',{
+        await axiosInstance.post('/auth/login_web3',{
           "wallet_address": account
         }).then(response=>{
           if (response.status == 201){
@@ -84,11 +94,13 @@ export default function Login({loginWrapperSetter}) {
     } catch(err) {
       console.log(err);
     }
+    setIsLoading(false)
   }
 
   const disableWarning = () =>{
     setIsError(false)
   }
+
   return (
     <>
       <Head>
@@ -123,10 +135,20 @@ export default function Login({loginWrapperSetter}) {
             </div>
           }
           <div className="mb-3">
-            <button onClick={()=>LoggingIn()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Log in</button>
+            <button onClick={()=>LoggingIn()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+              {isLoading?
+                <LoadingSpinner/>:
+                <>Log in</>
+              }
+            </button>
           </div>
           <div>
-            <button onClick={()=>onConnect()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Web3 Log in</button>
+            <button onClick={()=>onConnect()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+              {isLoading?
+                <LoadingSpinner/>:
+                <>Web3 Log in</>
+              }
+            </button>
           </div>
         </div>
       </main>

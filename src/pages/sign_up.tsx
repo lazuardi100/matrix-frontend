@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { Inter } from '@next/font/google'
 import { useState } from 'react';
 import { axiosInstance } from '@/helpers/axiosHelper';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -12,7 +13,10 @@ export default function SignUp() {
 
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const register = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const register = async() => {
+    setIsLoading(true)
     // @ts-ignore: Object is possibly 'null'
     const email = document.getElementById('email').value
     // @ts-ignore: Object is possibly 'null'
@@ -22,7 +26,7 @@ export default function SignUp() {
 
     if (email != '' && password != '' && repassword != ''){
       if (password == repassword){
-        axiosInstance.post('/users/create',{
+        await axiosInstance.post('/users/create',{
           "email": email,
           "password": password
         }).then(response=>{
@@ -55,6 +59,7 @@ export default function SignUp() {
       setIsError(true)
       setErrorMsg('email & password must filled!')
     }
+    setIsLoading(false)
   }
 
   const disableWarning = () =>{
@@ -109,7 +114,12 @@ export default function SignUp() {
                 </button>
               </div>
             }
-            <button onClick={()=>register()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Register</button>
+            <button onClick={()=>register()} type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+              {isLoading?
+                <LoadingSpinner/>:
+                <>Register</>
+              }
+            </button>
             <a className="underline decoration-sky-500 ml-3" href="/">I have already account</a>
           </div>
         </div>
